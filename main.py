@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from datasets import PixelRegressionDataset
-from models import Regressor
+from models import Regressor0, Regressor1, Regressor2
 
 
 def main() -> None:
@@ -17,12 +17,23 @@ def main() -> None:
     out_dir = Path("outputs")
     out_dir.mkdir(exist_ok=True)
 
-    fig, axes = plt.subplots(1, 3, figsize=(17, 5))
+    fig = plt.figure(figsize=(15, 10), constrained_layout=True)
+    axes = fig.subplot_mosaic(
+        """
+        ABC
+        DDD
+        """
+    )
+    tests = [
+        (Regressor0, axes["A"], "No CoordConv"),
+        (Regressor1, axes["B"], "CoordConv at input"),
+        (Regressor1, axes["C"], "CoordConv at each layer"),
+    ]
 
     manager = enlighten.Manager()
 
-    test_bar = manager.counter(total=2, desc="Test progress", unit="models", leave=False)
-    for coord_conv, ax in zip([False, True], axes):
+    test_bar = manager.counter(total=len(tests), desc="Test progress", unit="models", leave=False)
+    for model_ctr, ax, description in tests:
         dataset = PixelRegressionDataset(size=32)
         assert len(dataset) % batch_size == 0
 
@@ -31,7 +42,7 @@ def main() -> None:
         )
         test_data_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=2)
 
-        model = Regressor(coord_conv=coord_conv).to(device)
+        model = model_ctr().to(device)
         optimizer = torch.optim.RAdam(params=model.parameters(), lr=0.001)
 
         avg_losses = []
@@ -70,21 +81,20 @@ def main() -> None:
         targets_np = torch.cat(targets, dim=0).cpu().numpy()
         preds_np = torch.cat(preds, dim=0).cpu().numpy()
 
-        ax.set_title(f"coord_conv = {coord_conv}")
+        ax.set_title(description)
         ax.set_xlabel("Dimension 1")
         ax.set_ylabel("Dimension 2")
         ax.scatter(x=targets_np[:, 0], y=targets_np[:, 1], color="green", s=25.0)
         ax.scatter(x=preds_np[:, 0], y=preds_np[:, 1], color="red", s=12.5)
-        axes[-1].plot(avg_losses, label=f"coord_conv = {coord_conv}")
+        axes["D"].plot(avg_losses, label=description)
 
         test_bar.update()
     test_bar.close()
 
-    axes[-1].grid(True)
-    axes[-1].legend()
-    axes[-1].set_xlabel("Epoch")
-    axes[-1].set_ylabel("L2 loss")
-    fig.subplots_adjust(wspace=0.4)
+    axes["D"].grid(True)
+    axes["D"].legend()
+    axes["D"].set_xlabel("Epoch")
+    axes["D"].set_ylabel("L2 loss")
     fig.suptitle("Pixel coordinate regression")
 
     plt.savefig(out_dir / f"test.png")

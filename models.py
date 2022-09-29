@@ -20,11 +20,11 @@ class AddCoords(nn.Module):
         return torch.cat([x, pos_grid], dim=1)
 
 
-class Regressor(nn.Module):
-    def __init__(self, coord_conv: bool) -> None:
+class Regressor0(nn.Module):
+    def __init__(self) -> None:
         super().__init__()
-        layers: list[nn.Module] = [
-            nn.Conv2d(in_channels=3 + coord_conv * 2, out_channels=32, kernel_size=3, stride=2, padding=1),
+        self.seq = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
@@ -36,10 +36,58 @@ class Regressor(nn.Module):
             nn.ReLU(),
             nn.Conv2d(in_channels=32, out_channels=2, kernel_size=1),
             nn.Flatten(start_dim=1),
-        ]
-        if coord_conv:
-            layers.insert(0, AddCoords())
-        self.seq = nn.Sequential(*layers)
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.seq(x)
+
+
+class Regressor1(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = nn.Sequential(
+            AddCoords(),
+            nn.Conv2d(in_channels=5, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=32, out_channels=2, kernel_size=1),
+            nn.Flatten(start_dim=1),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.seq(x)
+
+
+class Regressor2(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = nn.Sequential(
+            AddCoords(),
+            nn.Conv2d(in_channels=5, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            AddCoords(),
+            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            AddCoords(),
+            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            AddCoords(),
+            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            AddCoords(),
+            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            AddCoords(),
+            nn.Conv2d(in_channels=34, out_channels=2, kernel_size=1),
+            nn.Flatten(start_dim=1),
+        )
 
     def forward(self, x: Tensor) -> Tensor:
         return self.seq(x)
