@@ -74,7 +74,7 @@ def experiment(train_mask: Tensor, test_mask: Tensor, manager: Manager, experime
             model.eval()
             test_losses = []
             test_epoch_pbar = manager.counter(
-                total=len(train_data_loader), desc="Test epoch progress", unit="iters", leave=False
+                total=len(test_data_loader), desc="Test epoch progress", unit="iters", leave=False
             )
             with torch.no_grad():
                 for img, target in test_data_loader:
@@ -95,16 +95,34 @@ def experiment(train_mask: Tensor, test_mask: Tensor, manager: Manager, experime
         test_preds = []
         model.eval()
         with torch.no_grad():
+            calc_train_outputs_pbar = manager.counter(
+                total=len(train_data_loader) + len(test_data_loader),
+                desc="Calculate train outputs",
+                unit="iters",
+                leave=False,
+            )
             for img, target in train_data_loader:
                 img, target = img.to(device), target.to(device)
                 pred = model(img)
                 train_targets.append(target)
                 train_preds.append(pred)
+                calc_train_outputs_pbar.update()
+            calc_train_outputs_pbar.close()
+
+            calc_test_outputs_pbar = manager.counter(
+                total=len(train_data_loader) + len(test_data_loader),
+                desc="Calculate test outputs",
+                unit="iters",
+                leave=False,
+            )
             for img, target in test_data_loader:
                 img, target = img.to(device), target.to(device)
                 pred = model(img)
                 test_targets.append(target)
                 test_preds.append(pred)
+                calc_test_outputs_pbar.update()
+            calc_test_outputs_pbar.close()
+
         train_targets_np = torch.cat(train_targets, dim=0).cpu().numpy()
         test_targets_np = torch.cat(test_targets, dim=0).cpu().numpy()
         train_preds_np = torch.cat(train_preds, dim=0).cpu().numpy()
