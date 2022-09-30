@@ -27,7 +27,7 @@ def main() -> None:
     tests = [
         (Regressor0, axes["A"], "No CoordConv"),
         (Regressor1, axes["B"], "CoordConv at input"),
-        (Regressor1, axes["C"], "CoordConv at each layer"),
+        (Regressor2, axes["C"], "CoordConv at each layer"),
     ]
 
     manager = enlighten.Manager()
