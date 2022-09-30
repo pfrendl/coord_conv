@@ -12,4 +12,4 @@ By running main.py, I get the following outputs:
 ![uniform_split](https://user-images.githubusercontent.com/6968154/193356154-11ebbf4e-dba0-4f5c-96ab-b877d31aea3a.png)
 ![quadrant_split](https://user-images.githubusercontent.com/6968154/193356165-624545b7-d590-4b45-b5bd-04a199a1a14e.png)
 
-CoordConv seems to be disadvantageous when downsampling is involved, and none of the models can solve the quadrant split experiment. Moreover, regular convolution perfroms much better than indicated by Uber.
+CoordConv seems to be disadvantageous when downsampling is involved, and none of the models can solve the quadrant split experiment. Moreover, regular convolution perfroms quite well in the overfitting task and the uniform split task.
