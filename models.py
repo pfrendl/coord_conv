@@ -1,5 +1,8 @@
+import math
+
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch import Tensor
 
 
@@ -20,21 +23,42 @@ class AddCoords(nn.Module):
         return torch.cat([x, pos_grid], dim=1)
 
 
+class ReLU(nn.Module):
+    def forward(self, x: Tensor) -> Tensor:
+        gain = math.sqrt(2)
+        return gain * x.relu()
+
+
+class Conv2d(nn.Module):
+    def __init__(
+        self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 0
+    ) -> None:
+        super().__init__()
+        gain = 1 / math.sqrt(in_channels * kernel_size * kernel_size)
+        self.weight = nn.Parameter(gain * torch.randn(out_channels, in_channels, kernel_size, kernel_size))
+        self.bias = nn.Parameter(torch.zeros((out_channels,)))
+        self.stride = stride
+        self.padding = padding
+
+    def forward(self, x: Tensor) -> Tensor:
+        return F.conv2d(input=x, weight=self.weight, bias=self.bias, stride=self.stride, padding=self.padding)
+
+
 class Regressor0(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         self.seq = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=2, kernel_size=1),
+            Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=2, kernel_size=1),
             nn.Flatten(start_dim=1),
         )
 
@@ -47,17 +71,17 @@ class Regressor1(nn.Module):
         super().__init__()
         self.seq = nn.Sequential(
             AddCoords(),
-            nn.Conv2d(in_channels=5, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=32, out_channels=2, kernel_size=1),
+            Conv2d(in_channels=5, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
+            Conv2d(in_channels=32, out_channels=2, kernel_size=1),
             nn.Flatten(start_dim=1),
         )
 
@@ -70,22 +94,22 @@ class Regressor2(nn.Module):
         super().__init__()
         self.seq = nn.Sequential(
             AddCoords(),
-            nn.Conv2d(in_channels=5, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
+            Conv2d(in_channels=5, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
             AddCoords(),
-            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
+            Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
             AddCoords(),
-            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
+            Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
             AddCoords(),
-            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
+            Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
             AddCoords(),
-            nn.Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
-            nn.ReLU(),
+            Conv2d(in_channels=34, out_channels=32, kernel_size=3, stride=2, padding=1),
+            ReLU(),
             AddCoords(),
-            nn.Conv2d(in_channels=34, out_channels=2, kernel_size=1),
+            Conv2d(in_channels=34, out_channels=2, kernel_size=1),
             nn.Flatten(start_dim=1),
         )
 
