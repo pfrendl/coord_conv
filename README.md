@@ -8,8 +8,8 @@ This is not evident from the [blog post](https://www.uber.com/en-HU/blog/coordco
 This repository implements a version of the pixel coordinate regression tasks that has downsampling in it.
 
 By running main.py, I get the following outputs:
-![overfit_grid](https://user-images.githubusercontent.com/6968154/193352301-50613ffc-1539-4b3e-ba93-0162799f5d7a.png)
-![uniform_split](https://user-images.githubusercontent.com/6968154/193352318-ff2e756c-488d-4e54-bcdf-cab14e98c835.png)
-![quadrant_split](https://user-images.githubusercontent.com/6968154/193352339-5e35ee39-65fd-46e7-b50f-d19e304322a4.png)
+![overfit_grid](https://user-images.githubusercontent.com/6968154/193356141-59ba6ba6-2eb9-404c-9470-7603c794cc0f.png)
+![uniform_split](https://user-images.githubusercontent.com/6968154/193356154-11ebbf4e-dba0-4f5c-96ab-b877d31aea3a.png)
+![quadrant_split](https://user-images.githubusercontent.com/6968154/193356165-624545b7-d590-4b45-b5bd-04a199a1a14e.png)
 
 CoordConv seems to be disadvantageous when downsampling is involved, and none of the models can solve the quadrant split experiment. Moreover, regular convolution perfroms much better than indicated by Uber.
