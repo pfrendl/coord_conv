@@ -8,6 +8,6 @@ This is not evident from the [blog post](https://www.uber.com/en-HU/blog/coordco
 This repository implements a version of the pixel coordinate regression task that has downsampling in it.
 
 By running main.py, I get the following output:
-![test](https://user-images.githubusercontent.com/6968154/193093468-007b6983-0ec8-42a2-9c31-701fc7d475a9.png)
+![test](https://user-images.githubusercontent.com/6968154/193174012-4d0061e3-0090-4309-a61e-603d2e137b62.png)
 
 CoordConv seems to be disadvantageous when downsampling is involved.
