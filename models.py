@@ -29,6 +29,17 @@ class ReLU(nn.Module):
         return gain * x.relu()
 
 
+class Linear(nn.Module):
+    def __init__(self, in_features: int, out_features: int) -> None:
+        super().__init__()
+        gain = 1 / math.sqrt(in_features)
+        self.weight = nn.Parameter(gain * torch.randn((out_features, in_features)))
+        self.bias = nn.Parameter(torch.zeros((out_features,)))
+
+    def forward(self, x: Tensor) -> Tensor:
+        return F.linear(input=x, weight=self.weight, bias=self.bias)
+
+
 class Conv2d(nn.Module):
     def __init__(
         self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 0
@@ -115,3 +126,35 @@ class Regressor2(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         return self.seq(x)
+
+
+class Regressor3(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.num_features = 32
+        self.add_coords = AddCoords()
+        self.key = nn.Sequential(
+            Conv2d(in_channels=5, out_channels=self.num_features, kernel_size=1),
+            ReLU(),
+            Conv2d(in_channels=self.num_features, out_channels=self.num_features, kernel_size=1),
+        )
+        self.value = nn.Sequential(
+            Conv2d(in_channels=5, out_channels=self.num_features, kernel_size=1),
+            ReLU(),
+            Conv2d(in_channels=self.num_features, out_channels=self.num_features, kernel_size=1),
+        )
+        self.query = nn.Parameter(torch.ones((self.num_features,)))
+        self.mlp = nn.Sequential(
+            nn.Linear(self.num_features, self.num_features),
+            ReLU(),
+            nn.Linear(self.num_features, 2),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        x = self.add_coords(x)
+        _, _, h, w = x.shape
+        keys = self.key(x)
+        values = self.value(x)
+        weights = torch.einsum("c,bchw->bhw", [self.query, keys]) / math.sqrt(self.num_features)
+        result = torch.einsum("bhw,bchw->bc", [weights, values]) / math.sqrt(h * w)
+        return self.mlp(result)

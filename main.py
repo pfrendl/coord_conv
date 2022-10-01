@@ -7,28 +7,33 @@ from torch import Tensor
 from torch.utils.data import DataLoader
 
 from datasets import PixelRegressionDataset
-from models import Regressor0, Regressor1, Regressor2
+from models import Regressor0, Regressor1, Regressor2, Regressor3
 
 
 grid_size = 32
-num_epochs = 80
+num_epochs = 100
 batch_size = 32
 device = torch.device("cuda")
 out_dir = Path("outputs")
+
+
+def loss_fn(pred: Tensor, target: Tensor) -> Tensor:
+    return (target - pred).pow(2).sum(dim=1).mean(dim=0)
 
 
 def experiment(train_mask: Tensor, test_mask: Tensor, manager: Manager, experiment_name: str) -> None:
     fig = plt.figure(figsize=(15, 10), constrained_layout=True)
     axes = fig.subplot_mosaic(
         """
-        ABC
-        DE.
+        ABE
+        CDF
         """
     )
     tests = [
         (Regressor0, axes["A"], "No CoordConv"),
         (Regressor1, axes["B"], "CoordConv at input"),
         (Regressor2, axes["C"], "CoordConv at each layer"),
+        (Regressor3, axes["D"], "Attention-based model"),
     ]
 
     experiment_pbar = manager.counter(total=len(tests), desc="Experiment progress", unit="models", leave=False)
@@ -61,7 +66,7 @@ def experiment(train_mask: Tensor, test_mask: Tensor, manager: Manager, experime
 
                 pred = model(img)
 
-                loss = (target - pred).pow(2).sum(dim=1).mean(dim=0)
+                loss = loss_fn(pred=pred, target=target)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -80,7 +85,7 @@ def experiment(train_mask: Tensor, test_mask: Tensor, manager: Manager, experime
                 for img, target in test_data_loader:
                     img, target = img.to(device), target.to(device)
                     pred = model(img)
-                    loss = (target - pred).pow(2).sum(dim=1).mean(dim=0)
+                    loss = loss_fn(pred=pred, target=target)
                     test_losses.append(loss.item())
                     test_epoch_pbar.update()
             test_epoch_pbar.close()
@@ -138,23 +143,23 @@ def experiment(train_mask: Tensor, test_mask: Tensor, manager: Manager, experime
         )
         ax.scatter(x=test_preds_np[:, 0], y=test_preds_np[:, 1], color="red", s=12.5, label="Test set predictions")
         ax.legend(loc="upper right")
-        axes["D"].plot(avg_train_losses, label=description)
-        axes["E"].plot(avg_test_losses, label=description)
+        axes["E"].plot(avg_train_losses, label=description)
+        axes["F"].plot(avg_test_losses, label=description)
 
         experiment_pbar.update()
     experiment_pbar.close()
 
-    axes["D"].set_title("Train loss")
-    axes["D"].grid(True)
-    axes["D"].legend()
-    axes["D"].set_xlabel("Epoch")
-    axes["D"].set_ylabel("L2 loss")
-
-    axes["E"].set_title("Test loss")
+    axes["E"].set_title("Train loss")
     axes["E"].grid(True)
     axes["E"].legend()
     axes["E"].set_xlabel("Epoch")
     axes["E"].set_ylabel("L2 loss")
+
+    axes["F"].set_title("Test loss")
+    axes["F"].grid(True)
+    axes["F"].legend()
+    axes["F"].set_xlabel("Epoch")
+    axes["F"].set_ylabel("L2 loss")
 
     fig.suptitle(f"Pixel coordinate regression - {experiment_name}")
 
