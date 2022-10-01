@@ -132,29 +132,15 @@ class Regressor3(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         self.num_features = 32
-        self.add_coords = AddCoords()
-        self.key = nn.Sequential(
+        self.seq = nn.Sequential(
+            AddCoords(),
             Conv2d(in_channels=5, out_channels=self.num_features, kernel_size=1),
             ReLU(),
             Conv2d(in_channels=self.num_features, out_channels=self.num_features, kernel_size=1),
-        )
-        self.value = nn.Sequential(
-            Conv2d(in_channels=5, out_channels=self.num_features, kernel_size=1),
             ReLU(),
-            Conv2d(in_channels=self.num_features, out_channels=self.num_features, kernel_size=1),
-        )
-        self.query = nn.Parameter(torch.ones((self.num_features,)))
-        self.mlp = nn.Sequential(
-            nn.Linear(self.num_features, self.num_features),
-            ReLU(),
-            nn.Linear(self.num_features, 2),
+            Conv2d(in_channels=self.num_features, out_channels=2, kernel_size=1),
         )
 
     def forward(self, x: Tensor) -> Tensor:
-        x = self.add_coords(x)
-        _, _, h, w = x.shape
-        keys = self.key(x)
-        values = self.value(x)
-        weights = torch.einsum("c,bchw->bhw", [self.query, keys]) / math.sqrt(self.num_features)
-        result = torch.einsum("bhw,bchw->bc", [weights, values]) / math.sqrt(h * w)
-        return self.mlp(result)
+        x = self.seq(x)
+        return x.mean(dim=(2, 3))
