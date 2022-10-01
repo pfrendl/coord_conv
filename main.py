@@ -11,7 +11,7 @@ from models import Regressor0, Regressor1, Regressor2, Regressor3
 
 
 grid_size = 32
-num_epochs = 200
+num_epochs = 1000
 batch_size = 32
 device = torch.device("cuda")
 out_dir = Path("outputs")
@@ -30,9 +30,9 @@ def experiment(train_mask: Tensor, test_mask: Tensor, manager: Manager, experime
         """
     )
     tests = [
-        # (Regressor0, axes["A"], "No CoordConv"),
-        # (Regressor1, axes["B"], "CoordConv at input"),
-        # (Regressor2, axes["C"], "CoordConv at each layer"),
+        (Regressor0, axes["A"], "No CoordConv"),
+        (Regressor1, axes["B"], "CoordConv at input"),
+        (Regressor2, axes["C"], "CoordConv at each layer"),
         (Regressor3, axes["D"], "Attention-based model"),
     ]
 
